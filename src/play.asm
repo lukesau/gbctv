@@ -18,7 +18,7 @@ StartPlayback::
     ld a, KEY1F_PREPARE
     ld [rKEY1], a
     stop                          ; Double-speed mode
-    ld hl, wRecordingBase         ; Pre-load RAM pointer
+    ld hl, sRawSamples            ; Pre-load RAM pointer (past bank header)
     ld a, LOW(rRP)
     ld c, a                       ; Load pointer for LDH [$ff00 + C]
     ld a, HIGH(_RAM)

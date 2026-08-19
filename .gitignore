@@ -2,3 +2,5 @@
 *.gb
 *.o
 *.sav
+# stray screenshots
+*.bmp

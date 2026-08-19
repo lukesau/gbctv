@@ -6,7 +6,11 @@ INCLUDE "src/init.asm"
 INCLUDE "src/functions.asm"
 INCLUDE "src/rec.asm"
 INCLUDE "src/play.asm"
+INCLUDE "src/ir.asm"
 INCLUDE "src/profile.asm"
+IF DEF(CONVTEST)
+INCLUDE "src/convtest.asm"
+ENDC
 
 SECTION "Vectors", ROM0[$0]
     ds $40 - @
@@ -67,6 +71,10 @@ Init::
     ld hl, rRAMG
     ld [hl], a
 
+IF DEF(CONVTEST)
+    call ConvTest
+ENDC
+
     ; Enable LCD
     ld a, LCDCF_ON | LCDCF_BGON
     ld [rLCDC], a
@@ -88,8 +96,11 @@ MenuLoop::
     ld hl, ADDR_SYMBOL_B
     ld a, "B"
     ld [hl], a
+    ld a, $20                ; clear learn/send busy dots
+    ld [ADDR_SYMBOL_ST], a
+    ld [ADDR_SYMBOL_SE], a
 
-    ; Check A or B presses
+    ; Check button presses
     ld a, P1F_GET_BTN
     ld [rP1], a
     ld a, [rP1]
@@ -97,6 +108,10 @@ MenuLoop::
     jp z, StartRecording
     bit 1, a
     jp z, StartPlayback
+    bit 3, a
+    jp z, IRLearn
+    bit 2, a
+    jp z, IRSend
 
     ; Check Profile Switch Cooldown
     ldh a, [hProfileCooldown]

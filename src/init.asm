@@ -70,6 +70,12 @@ InitMenu::
     ld de, strPressB
     ld hl, ADDR_PLAY_LABEL
     call Strcpy
+    ld de, strPressStart
+    ld hl, ADDR_LEARN_LABEL
+    call Strcpy
+    ld de, strPressSelect
+    ld hl, ADDR_SEND_LABEL
+    call Strcpy
     ld de, strProfile
     ld hl, ADDR_PROFILE_LABEL
     call Strcpy

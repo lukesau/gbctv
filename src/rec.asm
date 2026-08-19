@@ -27,7 +27,7 @@ StartRecording::
     ld a, KEY1F_PREPARE
     ld [rKEY1], a
     stop                          ; Double-speed mode
-    ld hl, wRecordingBase         ; Pre-load RAM pointer
+    ld hl, sRawSamples            ; Pre-load RAM pointer (past bank header)
     ld a, LOW(rRP)
     ld c, a                       ; Load pointer for LDH [$ff00 + C]
     ld a, HIGH(_RAM)
@@ -54,6 +54,35 @@ StartRecording::
     ; Post-process recorded inputs
     call PostProcessRecording
 
+    ; Stamp the bank header so PC tools can parse the .sav dump
+    ld hl, sHdrMagic
+    ld a, $49                 ; "I"
+    ld [hli], a
+    ld a, $52                 ; "R"
+    ld [hli], a
+    ld a, SAVF_RAW
+    ld [hli], a
+    ld a, SAV_VERSION
+    ld [hli], a
+    ld a, RAW_PERIOD_MCYC
+    ld [sHdrRawPeriod], a
+    ld a, $02
+    ld [sHdrRawSpeed], a
+
+    ; Derive a sendable learned code from this exact capture
+    call IRConvertRaw
+    and a
+    jr z, .noConvert
+    ld a, SAVF_RAW | SAVF_RLE
+    ld [sHdrType], a
+    ld a, IR_UNIT_MCYCLES
+    ld [sHdrRleUnit], a
+    ld a, $01
+    ld [sHdrRleSpeed], a
+    ld a, RLESRC_DERIVED
+    ld [sHdrRleSource], a
+.noConvert
+
     ; Re-enable interrupts and return to menu loop
     call InitInterrupts
     jp MenuLoop
@@ -65,7 +94,7 @@ StartRecording::
 ;------------------------------------------------------------------------
 PostProcessRecording::
     ; Load base pointer
-    ld hl, wRecordingBase
+    ld hl, sRawSamples
 
 .postProcessingLoop
     ; Process recorded byte
