@@ -4,6 +4,11 @@ SECTION "Playback", ROM0
 ; Starts playback of the signal data stored in the selected SRAM bank.
 ;------------------------------------------------------------------------
 StartPlayback::
+    ; Disable Interrupts. The loop below is cycle-counted, and with IME still
+    ; set from InitInterrupts a VBlank IRQ inserts its dispatch plus reti into
+    ; whichever sample it lands on. StartRecording already does this.
+    di
+
     ; Set playback icon
     ld hl, ADDR_SYMBOL_B
     ld a, REC_SYMBOL_TILENO
